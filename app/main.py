@@ -64,7 +64,6 @@ def main():
         message = get_message(path)
         response = build_http_response("200", "text/plain", f"{message}")
         response_bytes = response.encode("utf-8")
-        print(response)
         conn.sendall(response_bytes)
     else:
         conn.sendall(b"HTTP/1.1 404 Not Found\r\n\r\n")
