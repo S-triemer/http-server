@@ -8,7 +8,7 @@ def main():
     server_socket.listen()
     conn = server_socket.accept() #this returns a new socket object, representing the connection to a client after 3-way handshake
     print(conn[0])
-    conn[0].send("HTTP/1.1 200 OK\r\n\r\n")
+    conn[0].sendall(b"HTTP/1.1 200 OK\r\n\r\n")
 
 
 if __name__ == "__main__":
