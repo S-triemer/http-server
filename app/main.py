@@ -10,7 +10,8 @@ def main():
     #this returns a tuple (conn, address) where conn is a new socket object, representing the connection to a client after 3-way handshake
     #and address is the clients address.
     conn, addr = server_socket.accept()
-    print (addr)
+    client_req = conn.recv(1024)
+    print (client_req.decode("utf-8"))
     #sendall has to be used here instead of send because send only sends as much data as possible within the sockets send buffer and then
     #returns the number of bytes that were sent. So send needs to be called multiple times if it's buffer doesn't fit into the sockets send buffer.
     #sendall on the other hand keeps sending data until all data from its buffer has been sent.
