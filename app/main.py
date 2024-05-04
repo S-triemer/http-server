@@ -31,6 +31,27 @@ def main():
         else:
             return None
         
+    def get_message(path):
+        parts = path.split("/")
+        return parts[2]
+    
+    def build_http_response(status_code, content_type, body):
+        response="HTTP/1.1 "
+        if status_code == "200":
+            response += "200 OK\r\n"
+        elif status_code == "404":
+            response += "404 Not Found\r\n"
+        if content_type:
+            response += f"Content-Type: {content_type}\r\n"
+        if body:
+            body_length = len(body)
+            response += f"Content-Length: {body_length}\r\n"
+        #Linebreak to separate header and body
+        response += "\r\n"
+        if body:
+            response += body
+        return response
+        
     path = get_http_path(http_header)
     if path == "/":
         #sendall has to be used here instead of send because send only sends as much data as possible within the sockets send buffer and then
@@ -39,6 +60,12 @@ def main():
 
         #the b-prefix has to be used because the send methods expects bytes instead of strings.
         conn.sendall(b"HTTP/1.1 200 OK\r\n\r\n")
+    elif path.startswith("/echo/"):
+        message = get_message(path)
+        response = build_http_response("200", "text/plain", f"{message}")
+        response_bytes = response.encode("utf-8")
+        print(response)
+        conn.sendall(response_bytes)
     else:
         conn.sendall(b"HTTP/1.1 404 Not Found\r\n\r\n")
         
