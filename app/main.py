@@ -20,7 +20,7 @@ def main():
         if "\r\n\r\n" in client_req:
             break
 
-    http_header = client_req.decode("utf-8")
+    http_header = client_req
     print(get_http_path(http_header))
 
     def get_http_path(http_header):
