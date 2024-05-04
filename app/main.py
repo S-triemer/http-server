@@ -15,7 +15,7 @@ def main():
     #This loop ensures that the complete http header is received even if it contains more than 1024 byte.
     #The http-header always ends with \r\n\r\n before the body starts
     while True:
-        client_req += conn.recv(1024)
+        client_req += conn.recv(1024).decode("utf-8")
         
         if "\r\n\r\n" in client_req:
             break
