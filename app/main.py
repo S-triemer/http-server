@@ -21,7 +21,6 @@ def main():
             break
 
     http_header = client_req
-    print(get_http_path(http_header))
 
     def get_http_path(http_header):
         lines = http_header.split("\r\n")
@@ -31,6 +30,8 @@ def main():
             return words[1]
         else:
             return None
+        
+    print(get_http_path(http_header))
         
     #sendall has to be used here instead of send because send only sends as much data as possible within the sockets send buffer and then
     #returns the number of bytes that were sent. So send needs to be called multiple times if it's buffer doesn't fit into the sockets send buffer.
