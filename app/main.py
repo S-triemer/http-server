@@ -15,25 +15,49 @@ def main():
     #This loop ensures that the complete http header is received even if it contains more than 1024 byte.
     #The http-header always ends with \r\n\r\n before the body starts
     while True:
-        client_req += conn.recv(1024).decode("utf-8")
-        
-        if "\r\n\r\n" in client_req:
+        chunck = conn.recv(1024).decode("utf-8")
+        if not chunck:
             break
+        else:
+            client_req += chunck
 
     http_header = client_req
-
-    def get_http_path(http_header):
-        lines = http_header.split("\r\n")
-        first_line = lines[0]
-        words = first_line.split()
-        if len(words) >= 2:
-            return words[1]
-        else:
-            return None
         
     def get_message(path):
         parts = path.split("/")
         return parts[2]
+    
+    def get_http_request(request):
+        http_request = {"start-line": {}, "headers": {}, "body": {}}
+        #using 1 here just in case if the body also includes "\r\n\r\n"
+        header, body = request.split("\r\n\r\n", 1)
+        
+        ############################
+        #parsing the header
+        ############################
+        lines = header.split("\r\n")
+
+        #read the start line
+        start_line = lines.pop(0)
+        start_line_words = start_line.split()
+        http_request["start-line"]["method"] = start_line_words[0]
+        http_request["start-line"]["path"] = start_line_words[1]
+        http_request["start-line"]["version"] = start_line_words[2]
+        
+        for line in lines:
+            line_words = line.split()
+            #need to check this because by spliting lines with (\r\n) the last line will be ("")
+            if len(line_words)>=2:
+                headers_key = line_words[0].rstrip(":")
+                http_request["headers"][headers_key] = line_words[1]
+
+        ############################
+        #parsing the body
+        ############################
+        http_request["body"] = body
+    
+        return http_request
+
     
     def build_http_response(status_code, content_type, body):
         response="HTTP/1.1 "
@@ -51,8 +75,10 @@ def main():
         if body:
             response += body
         return response
-        
-    path = get_http_path(http_header)
+    
+    http_request = get_http_request(http_header)
+    path = http_request["start-line"]["path"]
+ 
     if path == "/":
         #sendall has to be used here instead of send because send only sends as much data as possible within the sockets send buffer and then
         #returns the number of bytes that were sent. So send needs to be called multiple times if it's buffer doesn't fit into the sockets send buffer.
@@ -63,6 +89,13 @@ def main():
     elif path.startswith("/echo/"):
         message = get_message(path)
         response = build_http_response("200", "text/plain", f"{message}")
+        response_bytes = response.encode("utf-8")
+        conn.sendall(response_bytes)
+    elif path == "/user-agent":
+        print(http_request)
+        message = http_request["headers"]["User-Agent"]
+        response = build_http_response("200", "text/plain", f"{message}")
+        print(response)
         response_bytes = response.encode("utf-8")
         conn.sendall(response_bytes)
     else:
