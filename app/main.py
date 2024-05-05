@@ -11,15 +11,19 @@ def main():
     #and address is the clients address.
     conn, addr = server_socket.accept()
     client_req = ""
+    body = ""
 
     #This loop ensures that the complete http header is received even if it contains more than 1024 byte.
     #The http-header always ends with \r\n\r\n before the body starts
     while True:
-        chunck = conn.recv(1024).decode("utf-8")
-        if not chunck:
+        chunk = conn.recv(1024).decode("utf-8")
+        if not chunk:
+            break 
+        client_req += chunk
+
+        if "\r\n\r\n" in client_req:
+            header, body = client_req.split("\r\n\r\n", 1)
             break
-        else:
-            client_req += chunck
 
     http_header = client_req
         
